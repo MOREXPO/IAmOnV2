@@ -1,0 +1,188 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{'Detalle del Switch'| trans}}
+{% endblock %}
+
+{% block body %}
+	<div class="hero">
+		<div class="hero__base mt-5">
+			<div class="container my-5">
+				<div class="row">
+					<div class="col-12">
+						<h2 class="pb-4 border-bottom text-white">{{'Detalle del Switch'| trans}}</h2>
+					</div>
+				</div>
+
+				<div class="row my-5">
+					<div class="col-md-12">
+						<div class="card h-100">
+							<div class="card-header bg-primary text-white">
+								<h5 class="card-title">{{switch.name}}</h5>
+							</div>
+							<div class="card-body">
+								<p class="card-text">{{switch.description}}</p>
+								<div class="{% if not isPublic or switch.owner.id == app.user.id %}form-check form-switch{% endif %} mb-3">
+									{% if not isPublic or switch.owner.id == app.user.id %}
+										{% if not switch.state %}
+											<a href="#" data-bs-toggle="modal" data-bs-target="#switchModal">
+											{% endif %}
+											<input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheck" {% if switch.state %} checked {% endif %}>
+											{% if not switch.state %}
+											</a>
+										{% endif %}
+									{% endif %}
+									<label class="{% if not isPublic or switch.owner.id == app.user.id %}form-check-label{% endif %}" for="estadoSwitch">
+										{% if switch.state %}
+											<span class="badge bg-success rounded-pill">{{'Encendido'| trans}}</span>
+										{% else %}
+											<span class="badge bg-danger rounded-pill">{{'Apagado'| trans}}</span>
+										{% endif %}
+									</label>
+								</div>
+								<div class="mb-3">
+									{% if switch.state %}
+										<strong>
+											<p id="minutosEncendido" class="card-text"></p>
+										</strong>
+										<script>
+											// Obtiene la fecha y hora almacenada en PHP y conviértela en un objeto DateTime de JavaScript
+var clickDateStart = luxon.DateTime.fromISO("{{ switch.clickDateStart|date('c') }}"); // Asegúrate de obtener la fecha correcta de tu contexto de Twig
+
+function updateMinutesCounter() {
+var currentTime = luxon.DateTime.local();
+var elapsedTime = Math.floor(currentTime.diff(clickDateStart, 'seconds').seconds);
+var minutes = Math.floor(elapsedTime / 60);
+var seconds = elapsedTime % 60;
+
+var minutesText = String(minutes).padStart(2, '0');
+var secondsText = String(seconds).padStart(2, '0');
+
+var minutosEncendido = document.getElementById("minutosEncendido");
+minutosEncendido.textContent = "{{'Tiempo encendido'| trans}}: " + minutesText + ":" + secondsText;
+}
+
+// Llama a la función inicialmente para mostrar el tiempo actual
+updateMinutesCounter();
+
+// Actualiza el contador cada segundo
+setInterval(updateMinutesCounter, 1000);
+										</script>
+									{% else %}
+										<strong>
+											<p id="fechaUltimoEncendido" class="card-text"></p>
+										</strong>
+										<script>
+											// Obtiene la fecha y hora almacenada en PHP y conviértela en un objeto DateTime de JavaScript
+var clickDateEnd = luxon.DateTime.fromISO("{{ switch.clickDateEnd|date('c') }}"); // Asegúrate de obtener la fecha correcta de tu contexto de Twig
+
+var fechaUltimoEncendido = document.getElementById("fechaUltimoEncendido");
+var formattedDate = clickDateEnd.toLocaleString(luxon.DateTime.DATETIME_FULL);
+fechaUltimoEncendido.textContent = "{{'Fecha Último Encendido'| trans}}: " + formattedDate;
+										</script>
+									{% endif %}
+								</div>
+								<div class="mb-3">
+									<strong>{{'Propietario'| trans}}:</strong>
+									{{switch.owner.username}}
+								</div>
+							</div>
+							{% if switch.owner.id != app.user.id %}
+								<div class="card-footer">
+									{% if is_granted('IS_AUTHENTICATED_FULLY') %}
+										<form action="{{ path('app_change_follower_switch',{'id':switch.id}) }}" method="post" class="">
+
+											<input type="hidden" name="switch_uuid" value="{{ app.request.attributes.get('uuid') }}">
+											{% if is_suscrito %}
+												<button type="submit" class="btn btn-danger">{{'Dejar de seguir'| trans}}</button>
+											{% else %}
+												<button type="submit" class="btn btn-primary">{{'Seguir'| trans}}</button>
+											{% endif %}
+
+										</form>
+									{% endif %}
+								</div>
+							{% endif %}
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="cube"></div>
+		<div class="cube"></div>
+		<div class="cube"></div>
+		<div class="cube"></div>
+		<div class="cube"></div>
+		<div class="cube"></div>
+		<div class="modal fade" id="switchModal" tabindex="-1" aria-labelledby="switchModalLabel" aria-hidden="true">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title" id="switchModalLabel">{{'Configurar interruptor'| trans}}</h5>
+						<button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+						</button>
+					</div>
+					<div class="modal-body">
+						<form id="switchForm{{ switch.id }}">
+							<div class="form-group">
+								<label for="onTime">{{'Tiempo de Encendido (minutos)'| trans}}:</label>
+								<input type="number" class="form-control" id="onTime{{ switch.id }}" name="onTime" min="1" max="120" value="60">
+							</div>
+						</form>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{'Cerrar'| trans}}</button>
+						<button type="button" class="btn btn-primary" onclick="encenderSwitch({{ switch.id }})">{{'Encender'| trans}}</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		<script>
+			function encenderSwitch(switchId) {
+var onTime = parseInt($('#onTime' + switchId).val());
+
+// Realiza una solicitud AJAX al controlador para encender el switch con el tiempo especificado
+$.ajax({
+url: '/check-switch/' + switchId,
+type: 'POST',
+data: {
+isChecked: true,
+onTime: onTime
+},
+success: function (response) { // Maneja la respuesta del controlador si es necesario
+console.log(response);
+location.reload();
+},
+error: function (error) { // Maneja errores si es necesario
+console.error(error);
+}
+});
+
+
+// Cierra el modal
+$('#switchModal').modal('hide');
+}
+		</script>
+		<script>
+			$(document).ready(function () { // Escucha el evento change de los checkboxes por su ID
+$('#flexSwitchCheck').on('change', function () {
+
+$.ajax({
+url: '/check-switch/' + {{ switch.id }}, // Reemplaza con la URL de tu controlador
+type: 'POST', // Puedes cambiar a GET si es necesario
+data: {
+isChecked: false // Envía el estado del checkbox al controlador
+},
+success: function (response) { // Maneja la respuesta del controlador si es necesario
+console.log(response);
+location.reload();
+},
+error: function (error) { // Maneja errores si es necesario
+console.error(error);
+}
+});
+});
+});
+		</script>
+	</div>
+{% endblock %}

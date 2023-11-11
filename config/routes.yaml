@@ -1,0 +1,8 @@
+controllers:
+    resource: ../src/Controller/
+    type: attribute
+not_found:
+    path: /{wildcard}
+    controller: App\Controller\ErrorController::NotFoundShow
+    requirements:
+        wildcard: ".*"
