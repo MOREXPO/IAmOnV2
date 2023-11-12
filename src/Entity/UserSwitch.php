@@ -4,8 +4,10 @@ namespace App\Entity;
 
 use App\Repository\UserSwitchRepository;
 use Doctrine\ORM\Mapping as ORM;
+use ApiPlatform\Metadata\ApiResource;
 
 #[ORM\Entity(repositoryClass: UserSwitchRepository::class)]
+#[ApiResource]
 class UserSwitch
 {
     #[ORM\Id]
