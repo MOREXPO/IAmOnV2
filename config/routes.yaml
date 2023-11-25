@@ -1,6 +1,10 @@
 controllers:
     resource: ../src/Controller/
     type: attribute
+# api/config/routes.yaml
+auth:
+    path: /auth
+    methods: ['POST']
 not_found:
     path: /{wildcard}
     controller: App\Controller\ErrorController::NotFoundShow

@@ -40,6 +40,18 @@ services:
             - symfony_app
         env_file:
             - .env.nginx.local
+    node:
+        build:
+            context: .
+            dockerfile: ./node/Dockerfile
+            #target: app_node_prod
+        restart: unless-stopped
+        ports:
+            - "5173:5173"
+        volumes:
+            - ../assets/:/srv/app
+        stdin_open: true
+        tty: true
 
 volumes:
     symfony_app_var:
