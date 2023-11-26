@@ -20,25 +20,43 @@ export const userStore = defineStore({
         },
     },
     actions: {
-        async login(objeto: any) {
+        login(objeto: any) {
             this.loading = true;
-            let response = await axios.post('http://localhost/auth', objeto);
-            this.token = response.data.token;
-            response = await axios.get('http://localhost/api/user_auth', {
-                headers: {
-                    'Authorization': `Bearer ${this.token}`,
-                }
-            });
-            this.user = response.data;
-            sessionStorage.setItem('token', this.token);
-            sessionStorage.setItem('user', JSON.stringify(this.user));
-            this.loading = false;
-            this.loaded = true;
+        
+            axios.post('http://localhost/auth', objeto)
+                .then(response => {
+                    this.token = response.data.token;
+                    return axios.get('http://localhost/api/user_auth', {
+                        headers: {
+                            'Authorization': `Bearer ${this.token}`,
+                        }
+                    });
+                })
+                .then(response => {
+                    this.user = response.data;
+                    sessionStorage.setItem('token', this.token);
+                    sessionStorage.setItem('user', JSON.stringify(this.user));
+                    this.loading = false;
+                    this.loaded = true;
+                })
+                .catch(error => {
+                    // Manejar el error aquí
+                    console.error('Error en la función login:', error);
+                    this.loading = false;
+                });
         },
-        async registration(objeto: any) {
+        registration(objeto: any) {
             this.loading = true;
-            let response = await axios.post('http://localhost/api/registration', objeto);
-            this.loading = false;
+        
+            axios.post('http://localhost/api/registration', objeto)
+                .then(response => {
+                    this.loading = false;
+                })
+                .catch(error => {
+                    // Manejar el error aquí
+                    console.error('Error en la función registration:', error);
+                    this.loading = false;
+                });
         },
         logout() {
             sessionStorage.clear();
