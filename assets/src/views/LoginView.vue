@@ -3,8 +3,9 @@
         <v-card class="mx-auto pa-12 pb-8 m-4" elevation="8" max-width="448" rounded="lg">
             <div class="text-subtitle-1 text-medium-emphasis">Usuario</div>
 
-            <v-text-field v-model="username" density="compact" placeholder="usuario" prepend-inner-icon="mdi-email-outline"
-                variant="outlined"></v-text-field>
+            <v-text-field v-model="username" density="compact" placeholder="usuario"
+                prepend-inner-icon="mdi-account-outline" variant="outlined"
+                v-on:keyup.enter="login({ 'username': username, 'password': password })"></v-text-field>
 
             <div class="text-subtitle-1 text-medium-emphasis d-flex align-center justify-space-between">
                 Contraseña
@@ -12,8 +13,8 @@
 
             <v-text-field v-model="password" :append-inner-icon="visible ? 'mdi-eye-off' : 'mdi-eye'"
                 :type="visible ? 'text' : 'password'" density="compact" placeholder="Introduzca la contraseña"
-                prepend-inner-icon="mdi-lock-outline" variant="outlined"
-                @click:append-inner="visible = !visible"></v-text-field>
+                prepend-inner-icon="mdi-account-key-outline" variant="outlined" @click:append-inner="visible = !visible"
+                v-on:keyup.enter="login({ 'username': username, 'password': password })"></v-text-field>
 
             <v-card class="mb-12" color="surface-variant" variant="tonal">
             </v-card>
@@ -41,8 +42,19 @@ export default {
         password: null,
         visible: false,
     }),
+    computed: {
+        ...mapState(userStore, {
+            user: store => store.user,
+            user_loaded: store => store.loaded,
+            user_loading: store => store.loading,
+        }),
+    },
     methods: {
         ...mapActions(userStore, ["login"])
+    },
+    mounted() {
+        if (this.user_loaded)
+            this.$router.push('/')
     }
 }
 </script>

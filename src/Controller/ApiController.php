@@ -2,11 +2,13 @@
 
 namespace App\Controller;
 
+use App\Entity\User;
 use App\Repository\SwitchesRepository;
 use App\Repository\UserRepository;
 use DateTime;
 use App\Message\StartCountdown;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
@@ -63,7 +65,7 @@ class ApiController extends AbstractController
     }
 
     #[Route('/switch/{uuid}', name: 'api_switch')]
-    public function switch(Uuid $uuid, SwitchesRepository $switchesRepository): JsonResponse
+    public function switch (Uuid $uuid, SwitchesRepository $switchesRepository): JsonResponse
     {
         $switch = $switchesRepository->findOneBy([
             'privateUri' => $uuid
@@ -121,6 +123,13 @@ class ApiController extends AbstractController
         return new JsonResponse(["Switch eliminado con éxito"]); // Redirige a la lista de Switches
     }
 
+    #[Route('/user_auth', name: 'user_auth', methods: ['GET'])]
+    public function userAuth(): JsonResponse
+    {
+        $this->denyAccessUnlessGranted('IS_AUTHENTICATED');
+        return new JsonResponse(["id" => $this->getUser()->getId(), "username" => $this->getUser()->getUsername(), "email" => $this->getUser()->getEmail(), "roles" => $this->getUser()->getRoles()]); // Redirige a la lista de Switches
+    }
+
     #[Route('/check-switch/{id}', name: 'api_check_switch', methods: ['POST'])]
     public function checkSwitch(int $id, MailerInterface $mailer, Request $request, SwitchesRepository $switchesRepository, EntityManagerInterface $entityManager, MessageBusInterface $messageBus): JsonResponse
     {
@@ -163,7 +172,7 @@ class ApiController extends AbstractController
 
         $entityManager->flush();
 
-        return new JsonResponse(["message" => "Switch cambio al estado ".($switch->isState()?"true":"false")]);
+        return new JsonResponse(["message" => "Switch cambio al estado " . ($switch->isState() ? "true" : "false")]);
     }
 
     #[Route('/change-follower-switch/{id}', name: 'api_change_follower_switch', methods: ['POST'])]
@@ -193,5 +202,27 @@ class ApiController extends AbstractController
         } else {
             return new JsonResponse(["No se ha encontrado Uri"]);
         }
+    }
+
+    #[Route('/registration', name: 'api_registration', methods: ['POST'])]
+    public function api_registration(Request $request, UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $entityManager): JsonResponse
+    {
+        $params = json_decode($request->getContent(), true);
+        // Crear una nueva instancia de la entidad User
+        $user = new User();
+        // hash the password (based on the security.yaml config for the $user class)
+        $hashedPassword = $passwordHasher->hashPassword(
+            $user,
+            $params['password']
+        );
+        $user->setPassword($hashedPassword);
+        $user->setUsername($params['username']);
+        if (array_key_exists('email', $params))
+            $user->setEmail($params['email']);
+        // Guardar el usuario en la base de datos
+        $entityManager->persist($user);
+        $entityManager->flush();
+
+        return new JsonResponse(["username" => $user->getUsername(), "email" => $user->getEmail(), "roles" => $user->getRoles()]);
     }
 }
