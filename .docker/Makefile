@@ -4,6 +4,7 @@ DOCKER_COMP = docker compose
 # Docker containers
 PHP_CONT      = $(DOCKER_COMP) exec php
 DATABASE_CONT = $(DOCKER_COMP) exec mariadb
+NODE_CONT = $(DOCKER_COMP) exec node
 
 # Executables
 PHP      = $(PHP_CONT) php
@@ -50,6 +51,9 @@ sf: ## List all Symfony commands or pass the parameter "c=" to run a given comma
 
 cc: c=c:c ## Clear the cache
 cc: sf
+## —— node 	———————————————————————————————————————————————————————————————
+client-dev: 
+	$(NODE_CONT) npm run dev -- --host
 ## —— Deploy ———————————————————————————————————————————————————————————————
 consumer:
 	$(PHP_CONT) php bin/console messenger:consume async -vv
