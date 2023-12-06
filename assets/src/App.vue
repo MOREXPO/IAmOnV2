@@ -48,11 +48,11 @@ export default {
     Loader
   },
   mounted() {
-    if(sessionStorage.getItem('user')){
+    if (sessionStorage.getItem('user')) {
       this.setLoaded(true);
       this.setUser(JSON.parse(sessionStorage.getItem('user')));
     }
-    if(sessionStorage.getItem('token')){
+    if (sessionStorage.getItem('token')) {
       this.setToken(sessionStorage.getItem('token'));
     }
   },
@@ -64,7 +64,7 @@ export default {
     }),
   },
   methods: {
-    ...mapActions(userStore, ["setUser", "setToken","setLoaded","logout"])
+    ...mapActions(userStore, ["setUser", "setToken", "setLoaded", "logout"]),
   }
 };
 </script>

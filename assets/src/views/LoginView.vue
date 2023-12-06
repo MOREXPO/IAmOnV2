@@ -44,9 +44,7 @@ export default {
     }),
     computed: {
         ...mapState(userStore, {
-            user: store => store.user,
             user_loaded: store => store.loaded,
-            user_loading: store => store.loading,
         }),
     },
     methods: {

@@ -3,10 +3,13 @@ import axios from 'axios';
 export const userStore = defineStore({
     id: "user",
     state: () => ({
+        app_users: [],
         user: {},
         token: "",
         loaded: false,
         loading: false,
+        app_users_loaded: false,
+        app_users_loading: false,
     }),
     getters: {
         getUser: (state) => {
@@ -20,9 +23,27 @@ export const userStore = defineStore({
         },
     },
     actions: {
+        getAppUsers() {
+            this.app_users_loading = true;
+            axios.get('http://localhost/api/users', {
+                headers: {
+                    'Authorization': `Bearer ${sessionStorage.getItem('token')}`,
+                }
+            })
+                .then(response => {
+                    this.app_users = response.data['hydra:member'];
+                    this.app_users_loading = false;
+                    this.app_users_loaded = true;
+                })
+                .catch(error => {
+                    // Manejar el error aquí
+                    console.error('Error:', error);
+                    this.app_users_loading = false;
+                });
+        },
         login(objeto: any) {
             this.loading = true;
-        
+
             axios.post('http://localhost/auth', objeto)
                 .then(response => {
                     this.token = response.data.token;
@@ -47,7 +68,7 @@ export const userStore = defineStore({
         },
         registration(objeto: any) {
             this.loading = true;
-        
+
             axios.post('http://localhost/api/registration', objeto)
                 .then(response => {
                     this.loading = false;
