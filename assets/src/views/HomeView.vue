@@ -4,8 +4,8 @@
       <div class="col-12 col-md-4">
         <v-card class="mx-auto" color="grey-lighten-3" max-width="400">
           <v-card-text>
-            <v-text-field :loading="loadingSearch" density="compact" variant="solo" label="Buscar interruptores"
-              append-inner-icon="mdi-magnify" single-line hide-details @click:append-inner="onClick"></v-text-field>
+            <v-text-field v-model="search" :loading="loadingSearch" density="compact" variant="solo" label="Buscar interruptores"
+              append-inner-icon="mdi-magnify" single-line hide-details></v-text-field>
           </v-card-text>
         </v-card>
       </div>
@@ -78,15 +78,15 @@
                 <div class="modal-body">
                   <form :id="'switchForm' + mi_switch.id">
                     <div class="form-group">
-                      <label for="onTime">Tiempo de Encendido (minutos):</label>
-                      <input type="number" class="form-control" :id="'onTime' + mi_switch.id" name="onTime" min="1"
-                        max="120" value="60">
+                      <v-text-field label="Tiempo de Encendido (minutos):" v-model="onTime" type="number"
+                        :rules="numericRules"></v-text-field>
                     </div>
                   </form>
                 </div>
                 <div class="modal-footer">
                   <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                  <button type="button" class="btn btn-primary">Encender</button>
+                  <v-btn @click="checkSwitch(mi_switch.id, onTime, !mi_switch.state)" class="btn btn-primary"
+                    :disabled="onTime < 1 || onTime > 120" data-bs-dismiss="modal">Encender</v-btn>
                 </div>
               </div>
             </div>
@@ -100,10 +100,8 @@
               </div>
               <div>
                 <!-- Agrega enlaces o botones según tus necesidades -->
-                <a :href="'http://localhost/api/remove-switches/' + mi_switch.id"
-                  onclick="return confirm('¿Estás seguro de que deseas eliminar este Switch?')" class="btn btn-danger">
-                  <v-icon icon="mdi-delete"></v-icon>
-                </a>
+                <v-btn class="btn btn-danger" @click="borrarSwitch(mi_switch.id)"><v-icon
+                    icon="mdi-delete"></v-icon></v-btn>
               </div>
             </div>
           </div>
@@ -123,10 +121,9 @@
                     <span class="input-group-text" id="inputGroup-sizing-sm">URI publico</span>
                     <input type="text" class="form-control" :id="'floatingInputPublic' + mi_switch.id"
                       :value="mi_switch.publicUri" readonly>
-                    <button :id="'copyButtonPublic' + mi_switch.id" class="btn btn-outline-secondary">
-                      <v-icon icon="mdi-clipboard"></v-icon>
-                      Copiar
-                    </button>
+                    <CopyToClipboard :copy="mi_switch.publicUri" class="btn btn-outline-secondary"><v-icon
+                        icon="mdi-clipboard"></v-icon>
+                      Copiar</CopyToClipboard>
                   </div>
                 </div>
                 <div class="form-floating mb-3">
@@ -134,10 +131,9 @@
                     <span class="input-group-text" id="inputGroup-sizing-sm">URI privado</span>
                     <input type="text" class="form-control" :id="'floatingInputPrivate' + mi_switch.id"
                       :value="mi_switch.privateUri" readonly>
-                    <button :id="'copyButtonPrivate' + mi_switch.id" class="btn btn-outline-secondary">
-                      <v-icon icon="mdi-clipboard"></v-icon>
-                      Copiar
-                    </button>
+                    <CopyToClipboard :copy="mi_switch.privateUri" class="btn btn-outline-secondary"><v-icon
+                        icon="mdi-clipboard"></v-icon>
+                      Copiar</CopyToClipboard>
                   </div>
                 </div>
               </div>
@@ -218,6 +214,8 @@ import { userStore } from '/src/stores/user';
 import { switchStore } from '/src/stores/switch';
 export default {
   data: () => ({
+    onTime: 60,
+    search: "",
     error: false,
     nombre_create: "",
     description_create: "",
@@ -239,11 +237,28 @@ export default {
       switches_loading: store => store.loading,
     }),
     mis_switches() {
-      return this.switches.filter(x => x.owner == '/api/users/' + this.user.id);
+      const searchLower = this.search.toLowerCase().trim();
+      return this.switches.filter(x => {
+        if (x.owner == '/api/users/' + this.user.id) {
+          if (x.name.toLowerCase().includes(searchLower)) return true;
+        }
+        return false;
+      });
     },
     switches_suscritos() {
-      return this.switches;
-    }
+      const searchLower = this.search.toLowerCase().trim();
+      return this.app_users.find(x => x.id == this.user.id) ? this.app_users.find(x => x.id == this.user.id).suscriptions.filter(x => {
+        if (x.name.toLowerCase().includes(searchLower)) return true;
+        return false;
+      }) : [];
+    },
+    numericRules() {
+      return [
+        value => !!value || 'Requiredo',  // Check if the value is not empty
+        value => (value >= 1) || 'Debe ser mas grande que 1',  // Minimum value rule
+        value => (value <= 120) || 'Debe ser mas pequeño que 120', // Maximum value rule
+      ];
+    },
   },
   mounted() {
     if (!this.user_loaded)
@@ -256,7 +271,7 @@ export default {
     }
   },
   methods: {
-    ...mapActions(switchStore, ["getSwitchess", "createSwitch"]),
+    ...mapActions(switchStore, ["getSwitchess", "createSwitch", "deleteSwitch", "checkSwitch"]),
     ...mapActions(userStore, ["getAppUsers"]),
     crearSwitch() {
       if (this.nombre_create.trim().length > 0) {
@@ -265,12 +280,10 @@ export default {
       }
       else this.error = true;
     },
-    onClick() {
-      this.loadingSearch = true
-      setTimeout(() => {
-        this.loadingSearch = false
-        this.loadedSearch = true
-      }, 2000)
+    borrarSwitch(id) {
+      if (confirm('¿Estás seguro de que deseas eliminar este Switch?')) {
+        this.deleteSwitch(id);
+      }
     },
   },
   watch: {

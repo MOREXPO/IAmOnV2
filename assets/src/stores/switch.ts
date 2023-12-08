@@ -60,6 +60,46 @@ export const switchStore = defineStore({
                     this.loading = false;
                 });
         },
+        checkSwitch(id: any, onTime: any, isChecked: any) {
+            this.loading = true;
+
+            axios.post('http://localhost/api/check-switch/' + id, {
+                onTime: onTime,
+                isChecked: isChecked
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${sessionStorage.getItem('token')}`,
+                }
+            })
+                .then(response => {
+                    this.switches.find(x => x.id == id).state = response.data['state'];
+                    this.loading = false;
+                })
+                .catch(error => {
+                    // Manejar el error aquí
+                    console.error('Error:', error);
+                    this.loading = false;
+                });
+        },
+        deleteSwitch(id: any) {
+            this.loading = true;
+
+            axios.delete('http://localhost/api/switchess/' + id, {
+                headers: {
+                    'Authorization': `Bearer ${sessionStorage.getItem('token')}`,
+                }
+            })
+                .then(response => {
+                    this.switches = this.switches.filter(x => x.id != id);
+                    console.log(this.switches);
+                    this.loading = false;
+                })
+                .catch(error => {
+                    // Manejar el error aquí
+                    console.error('Error:', error);
+                    this.loading = false;
+                });
+        },
         getSwitch(uuid: any) {
             this.loading = true;
 

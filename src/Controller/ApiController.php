@@ -21,15 +21,17 @@ use Symfony\Component\Mime\Email;
 use Symfony\Component\Uid\Uuid;
 
 #[Route('/api', name: 'api_')]
-class ApiController extends AbstractController {
+class ApiController extends AbstractController
+{
     #[Route('/listarSwitches', name: 'listarSwitches')]
-    public function listarSwitches(Request $request, SwitchesRepository $switchesRepository, UserRepository $userRepository): JsonResponse {
+    public function listarSwitches(Request $request, SwitchesRepository $switchesRepository, UserRepository $userRepository): JsonResponse
+    {
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED');
         $filter = $request->get('filter');
         $mis_switches = $switchesRepository->findBy([
             "owner" => $this->getUser(),
         ]);
-        if($filter) {
+        if ($filter) {
             $filtered_switches = array_filter($mis_switches, function ($switch) use ($filter) {
                 $switchName = $switch->getName();
                 return strpos($switchName, $filter) !== false || $switchName === $filter;
@@ -39,10 +41,10 @@ class ApiController extends AbstractController {
         }
         $subscribed_switches = $this->getUser()->getSuscriptions();
         $subscribed_switches_aux = [];
-        foreach($subscribed_switches as $switch) {
+        foreach ($subscribed_switches as $switch) {
             $switchName = $switch->getSwitch()->getName();
-            if($filter) {
-                if(strpos($switchName, $filter) !== false) {
+            if ($filter) {
+                if (strpos($switchName, $filter) !== false) {
                     $subscribed_switches_aux[] = $switch->getSwitch()->toJson();
                 }
             } else {
@@ -51,7 +53,7 @@ class ApiController extends AbstractController {
         }
         $subscribed_switches = $subscribed_switches_aux;
         $mis_switches_aux = [];
-        foreach($mis_switches as $switch) {
+        foreach ($mis_switches as $switch) {
             $mis_switches_aux[] = $switch->toJson();
         }
         $mis_switches = $mis_switches_aux;
@@ -64,11 +66,12 @@ class ApiController extends AbstractController {
     }
 
     #[Route('/switch/{uuid}', name: 'api_switch')]
-    public function switch (Uuid $uuid, SwitchesRepository $switchesRepository): JsonResponse {
+    public function switch (Uuid $uuid, SwitchesRepository $switchesRepository): JsonResponse
+    {
         $switch = $switchesRepository->findOneBy([
             'privateUri' => $uuid
         ]);
-        if($switch)
+        if ($switch)
             $isPublic = false;
         else {
             $switch = $switchesRepository->findOneBy([
@@ -77,8 +80,8 @@ class ApiController extends AbstractController {
             $isPublic = true;
         }
         $is_suscrito = false;
-        if($this->getUser()) {
-            foreach($this->getUser()->getSuscriptions() as $suscription) {
+        if ($this->getUser()) {
+            foreach ($this->getUser()->getSuscriptions() as $suscription) {
                 $is_suscrito = $suscription->getSwitch()->getId() == $switch->getId();
             }
         }
@@ -91,7 +94,8 @@ class ApiController extends AbstractController {
     }
 
     #[Route('/create-switch', name: 'api_create_switch')]
-    public function createSwitch(Request $request, EntityManagerInterface $entityManager): JsonResponse {
+    public function createSwitch(Request $request, EntityManagerInterface $entityManager): JsonResponse
+    {
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED');
         $switch = new Switches();
         $content = json_decode($request->getContent(), true);
@@ -107,7 +111,8 @@ class ApiController extends AbstractController {
     }
 
     #[Route('/remove-switches/{id}', name: 'api_switches_delete', methods: ['GET'])]
-    public function deleteSwitch(int $id, EntityManagerInterface $entityManager, SwitchesRepository $switchesRepository): JsonResponse {
+    public function deleteSwitch(int $id, EntityManagerInterface $entityManager, SwitchesRepository $switchesRepository): JsonResponse
+    {
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED');
         $switch = $switchesRepository->find($id);
 
@@ -121,17 +126,20 @@ class ApiController extends AbstractController {
     }
 
     #[Route('/user_auth', name: 'user_auth', methods: ['GET'])]
-    public function userAuth(): JsonResponse {
+    public function userAuth(): JsonResponse
+    {
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED');
         return new JsonResponse(["id" => $this->getUser()->getId(), "username" => $this->getUser()->getUsername(), "email" => $this->getUser()->getEmail(), "roles" => $this->getUser()->getRoles()]); // Redirige a la lista de Switches
     }
 
     #[Route('/check-switch/{id}', name: 'api_check_switch', methods: ['POST'])]
-    public function checkSwitch(int $id, MailerInterface $mailer, Request $request, SwitchesRepository $switchesRepository, EntityManagerInterface $entityManager, MessageBusInterface $messageBus): JsonResponse {
+    public function checkSwitch(int $id, MailerInterface $mailer, Request $request, SwitchesRepository $switchesRepository, EntityManagerInterface $entityManager, MessageBusInterface $messageBus): JsonResponse
+    {
         $switch = $switchesRepository->find($id);
-        $state = filter_var($request->request->get("isChecked"), FILTER_VALIDATE_BOOLEAN);
-        $onTime = $request->request->get("onTime");
-        if($state) {
+        $content = json_decode($request->getContent(), true);
+        $state = filter_var($content['isChecked'], FILTER_VALIDATE_BOOLEAN);
+        $onTime = $content['onTime'];
+        if ($state) {
             $countdownId = $switch->getId();
             $message = new StartCountdown($countdownId, $onTime * 60000);
             $delayStamp = new DelayStamp($onTime * 60000);
@@ -139,9 +147,9 @@ class ApiController extends AbstractController {
             $switch->setClickDateStart(new DateTime());
             $switch->setState(true);
 
-            foreach($switch->getFollowers() as $follower) {
+            foreach ($switch->getFollowers() as $follower) {
                 $user = $follower->getUser();
-                if(!empty($user->getEmail())) {
+                if (!empty($user->getEmail())) {
                     $email = (new Email())
                         ->from('prueba@gmail.com')
                         ->to($user->getEmail())
@@ -149,9 +157,9 @@ class ApiController extends AbstractController {
                         //->bcc('bcc@example.com')
                         //->replyTo('fabien@example.com')
                         //->priority(Email::PRIORITY_HIGH)
-                        ->subject('AVISO SWITCH SUSCRITO ENCENDIDO ('.$switch->getName().')')
-                        ->text('Tienes el switch '.$switch->getName().' encendido')
-                        ->html('<p>Se encendio a las '.$switch->getClickDateStart()->format('Y-m-d H:i:s').'</p>');
+                        ->subject('AVISO SWITCH SUSCRITO ENCENDIDO (' . $switch->getName() . ')')
+                        ->text('Tienes el switch ' . $switch->getName() . ' encendido')
+                        ->html('<p>Se encendio a las ' . $switch->getClickDateStart()->format('Y-m-d H:i:s') . '</p>');
 
                     $mailer->send($email);
                 }
@@ -167,15 +175,16 @@ class ApiController extends AbstractController {
 
         $entityManager->flush();
 
-        return new JsonResponse(["message" => "Switch cambio al estado ".($switch->isState() ? "true" : "false")]);
+        return new JsonResponse(["state" => $switch->isState(), "message" => "Switch cambio al estado " . ($switch->isState() ? "true" : "false")]);
     }
 
     #[Route('/change-follower-switch/{id}', name: 'api_change_follower_switch', methods: ['POST'])]
-    public function addFollowerSwitch(int $id, Request $request, SwitchesRepository $switchesRepository, UserSwitchRepository $userSwitchRepository, EntityManagerInterface $entityManager, MessageBusInterface $messageBus): JsonResponse {
+    public function addFollowerSwitch(int $id, Request $request, SwitchesRepository $switchesRepository, UserSwitchRepository $userSwitchRepository, EntityManagerInterface $entityManager, MessageBusInterface $messageBus): JsonResponse
+    {
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED');
         $switch = $switchesRepository->find($id);
         $userSwitch = $userSwitchRepository->findOneBy(['user' => $this->getUser(), 'switch' => $switch]);
-        if($userSwitch) {
+        if ($userSwitch) {
             $switch->removeFollower($userSwitch);
             $entityManager->remove($userSwitch);
             $entityManager->flush();
@@ -191,7 +200,7 @@ class ApiController extends AbstractController {
 
 
         $entityManager->flush();
-        if($request->request->get("switch_uuid")) {
+        if ($request->request->get("switch_uuid")) {
             return new JsonResponse(['uuid' => $request->request->get("switch_uuid")]);
         } else {
             return new JsonResponse(["No se ha encontrado Uri"]);
@@ -199,7 +208,8 @@ class ApiController extends AbstractController {
     }
 
     #[Route('/registration', name: 'api_registration', methods: ['POST'])]
-    public function api_registration(Request $request, UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $entityManager): JsonResponse {
+    public function api_registration(Request $request, UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $entityManager): JsonResponse
+    {
         $params = json_decode($request->getContent(), true);
         // Crear una nueva instancia de la entidad User
         $user = new User();
@@ -210,7 +220,7 @@ class ApiController extends AbstractController {
         );
         $user->setPassword($hashedPassword);
         $user->setUsername($params['username']);
-        if(array_key_exists('email', $params))
+        if (array_key_exists('email', $params))
             $user->setEmail($params['email']);
         // Guardar el usuario en la base de datos
         $entityManager->persist($user);
