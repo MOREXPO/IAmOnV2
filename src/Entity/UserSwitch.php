@@ -5,9 +5,27 @@ namespace App\Entity;
 use App\Repository\UserSwitchRepository;
 use Doctrine\ORM\Mapping as ORM;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
+use ApiPlatform\Metadata\Delete;
 
 #[ORM\Entity(repositoryClass: UserSwitchRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    security: "is_granted('ROLE_USER')",
+    operations: [
+        new Get(),
+        new Put(
+            security: "object.user == user"
+        ),
+        new Delete(
+            security: "object.user == user"
+        ),
+        new Post(),
+        new GetCollection(),
+    ]
+)]
 class UserSwitch
 {
     #[ORM\Id]
@@ -16,7 +34,7 @@ class UserSwitch
     private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: "suscriptions")]
-    private $user;
+    public $user;
     #[ORM\ManyToOne(targetEntity: Switches::class, inversedBy: "users")]
     private $switch;
 
@@ -52,13 +70,13 @@ class UserSwitch
         $data = [
             'id' => $this->id,
             'user' => [
-                "id"=>$this->getUser()->getId(),
-                "username"=>$this->getUser()->getUsername(),
+                "id" => $this->getUser()->getId(),
+                "username" => $this->getUser()->getUsername(),
             ],
             'switch' => [
-                "id"=>$this->getSwitch()->getId(),
-                "name"=>$this->getSwitch()->getName(),
-                "description"=>$this->getSwitch()->getDescription(),
+                "id" => $this->getSwitch()->getId(),
+                "name" => $this->getSwitch()->getName(),
+                "description" => $this->getSwitch()->getDescription(),
             ],
             // Agrega otras propiedades según tus necesidades
         ];

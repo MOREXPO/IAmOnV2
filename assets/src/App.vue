@@ -2,9 +2,9 @@
   <v-app>
     <v-app-bar app class="text-bg-dark">
       <v-toolbar-title>
-        <a class="navbar-brand" href="/">
+        <router-link to="/" class="navbar-brand">
           <img src="./assets/logo.svg" class="me-3" :width="60" :height="60" alt="naranja" loading="lazy" />
-        </a>
+        </router-link>
       </v-toolbar-title>
 
       <div class="flex-grow-1"></div>
@@ -40,6 +40,8 @@
 import { RouterLink, RouterView } from 'vue-router';
 import { mapState, mapActions } from 'pinia';
 import { userStore } from '/src/stores/user';
+import { switchStore } from '/src/stores/switch';
+import { userSwitchStore } from '/src/stores/userSwitch';
 import Loader from '/src/components/Loader.vue';
 export default {
   components: {
@@ -55,16 +57,49 @@ export default {
     if (sessionStorage.getItem('token')) {
       this.setToken(sessionStorage.getItem('token'));
     }
+    if (!this.switches_loaded) {
+      this.getSwitchess();
+    }
+    if (!this.user_switches_loaded) {
+      this.getUserSwitchess();
+    }
+    if (!this.app_users_loaded) {
+      this.getAppUsers();
+    }
+  },
+  watch: {
+    user_loaded(val, oldVal) {
+      if (val) {
+        if (!this.switches_loaded) {
+          this.getSwitchess();
+        }
+        if (!this.user_switches_loaded) {
+          this.getUserSwitchess();
+        }
+        if (!this.app_users_loaded) {
+          this.getAppUsers();
+        }
+      }
+    }
   },
   computed: {
     ...mapState(userStore, {
       user: store => store.user,
       user_loaded: store => store.loaded,
       user_loading: store => store.loading,
+      app_users_loaded: store => store.app_users_loaded,
+    }),
+    ...mapState(switchStore, {
+      switches_loaded: store => store.loaded,
+    }),
+    ...mapState(userSwitchStore, {
+      user_switches_loaded: store => store.loaded,
     }),
   },
   methods: {
-    ...mapActions(userStore, ["setUser", "setToken", "setLoaded", "logout"]),
+    ...mapActions(switchStore, ["getSwitchess"]),
+    ...mapActions(userSwitchStore, ["getUserSwitchess"]),
+    ...mapActions(userStore, ["setUser", "setToken", "setLoaded", "logout", "getAppUsers"]),
   }
 };
 </script>

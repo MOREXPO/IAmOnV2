@@ -2,6 +2,9 @@
 
 namespace App\Entity;
 
+use App\Controller\ApiController;
+use App\Controller\ChangeSwitchFollowerController;
+use App\Controller\SwitchCheckController;
 use App\Repository\SwitchesRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -11,9 +14,37 @@ use Symfony\Component\Uid\Uuid;
 use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Validator\Constraints\Json;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
+use ApiPlatform\Metadata\Delete;
 
 #[ORM\Entity(repositoryClass: SwitchesRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    operations: [
+        new Get(),
+        new Put(
+            security: "object.owner == user and is_granted('ROLE_USER')"
+        ),
+        new Delete(
+            security: "object.owner == user and is_granted('ROLE_USER')"
+        ),
+        new Post(),
+        new Put(
+            controller: SwitchCheckController::class,
+            uriTemplate: '/switch/{id}/check',
+            name: 'api_check_switch',
+        ),
+        new Put(
+            controller: ChangeSwitchFollowerController::class,
+            uriTemplate: '/switch/{id}/follower',
+            name: 'api_change_follower_switch',
+            security: "is_granted('ROLE_USER')"
+        ),
+        new GetCollection(),
+    ],
+)]
 class Switches
 {
     #[ORM\Id]
@@ -37,7 +68,7 @@ class Switches
     private ?\DateTimeInterface $clickDateEnd = null;
 
     #[ORM\ManyToOne(inversedBy: 'switches')]
-    private ?User $owner = null;
+    public ?User $owner = null;
 
     #[ORM\OneToMany(mappedBy: "switch", targetEntity: UserSwitch::class, cascade: ["remove"])]
     private $followers;

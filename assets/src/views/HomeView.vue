@@ -4,8 +4,8 @@
       <div class="col-12 col-md-4">
         <v-card class="mx-auto" color="grey-lighten-3" max-width="400">
           <v-card-text>
-            <v-text-field v-model="search" :loading="loadingSearch" density="compact" variant="solo" label="Buscar interruptores"
-              append-inner-icon="mdi-magnify" single-line hide-details></v-text-field>
+            <v-text-field v-model="search" :loading="loadingSearch" density="compact" variant="solo"
+              label="Buscar interruptores" append-inner-icon="mdi-magnify" single-line hide-details></v-text-field>
           </v-card-text>
         </v-card>
       </div>
@@ -41,7 +41,8 @@
               <v-textarea v-model="description_create" name="input-7-1" variant="filled" label="Descripción (Opcional)"
                 auto-grow></v-textarea>
             </div>
-            <v-btn class="w-100 mb-2 btn btn-lg rounded-3 btn-primary" @click="crearSwitch">Crear</v-btn>
+            <v-btn class="w-100 mb-2 btn btn-lg rounded-3 btn-primary" @click="crearSwitch"
+              data-bs-dismiss="modal">Crear</v-btn>
           </div>
         </div>
       </div>
@@ -59,10 +60,20 @@
               <a v-if="!mi_switch.state" href="#" data-bs-toggle="modal" :data-bs-target="'#switchModal' + mi_switch.id">
                 <input class="form-check-input" type="checkbox" role="switch" :id="'flexSwitchCheck' + mi_switch.id">
               </a>
-              <input v-else class="form-check-input" type="checkbox" role="switch" :id="'flexSwitchCheck' + mi_switch.id"
-                checked>
+              <input v-else @click="checkSwitch(mi_switch.id, onTime, !mi_switch.state)" class="form-check-input"
+                type="checkbox" role="switch" :id="'flexSwitchCheck' + mi_switch.id" checked>
             </div>
             </p>
+            <div class="mb-3">
+              <strong v-if="mi_switch.state">
+                <p id="minutosEncendido" class="card-text">Tiempo encendido: {{ tiemposSwitches.find(x => x.id ==
+                  mi_switch.id).contador }} segundos</p>
+              </strong>
+              <strong v-else>
+                <p id="fechaUltimoEncendido" class="card-text">Fecha Último Encendido: {{ new
+                  Date(mi_switch.clickDateEnd).toLocaleString('es-ES', { timeZoneName: 'short' }) }}</p>
+              </strong>
+            </div>
           </div>
           <div class="modal fade" :id="'switchModal' + mi_switch.id" tabindex="-1"
             :aria-labelledby="'switchModalLabel' + mi_switch.id" aria-hidden="true">
@@ -186,9 +197,16 @@
               {{ app_users.find(x => x['@id'] == switch_suscrito.owner).username }}
             </p>
 
-            <p class="card-text">Fecha Último Encendido:
-              {{ switch_suscrito.clickDateEnd }}
-            </p>
+            <div class="mb-3">
+              <strong v-if="switch_suscrito.state">
+                <p id="minutosEncendido" class="card-text">Tiempo encendido: {{ tiemposSwitches.find(x => x.id ==
+                  switch_suscrito.id).contador }} segundos</p>
+              </strong>
+              <strong v-else>
+                <p id="fechaUltimoEncendido" class="card-text">Fecha Último Encendido: {{ new
+                  Date(switch_suscrito.clickDateEnd).toLocaleString('es-ES', { timeZoneName: 'short' }) }}</p>
+              </strong>
+            </div>
 
             <!-- Agrega otros detalles de tus switches suscritos según tus datos -->
           </div>
@@ -199,7 +217,7 @@
                 <!-- Agrega detalles del estado o la fecha de encendido según tus datos -->
               </div>
               <div>
-                <v-btn class="btn btn-danger">Dejar de seguir</v-btn>
+                <v-btn @click="changeFollowerSwitch(switch_suscrito.id)" class="btn btn-danger">Dejar de seguir</v-btn>
               </div>
             </div>
           </div>
@@ -212,6 +230,7 @@
 import { mapState, mapActions } from 'pinia';
 import { userStore } from '/src/stores/user';
 import { switchStore } from '/src/stores/switch';
+import { userSwitchStore } from '/src/stores/userSwitch';
 export default {
   data: () => ({
     onTime: 60,
@@ -226,15 +245,14 @@ export default {
     ...mapState(userStore, {
       user: store => store.user,
       user_loaded: store => store.loaded,
-      user_loading: store => store.loading,
       app_users: store => store.app_users,
-      app_users_loaded: store => store.app_users_loaded,
-      app_users_loading: store => store.app_users_loading,
     }),
     ...mapState(switchStore, {
       switches: store => store.switches,
-      switches_loaded: store => store.loaded,
-      switches_loading: store => store.loading,
+      tiemposSwitches: store => store.tiemposSwitches,
+    }),
+    ...mapState(userSwitchStore, {
+      user_switches: store => store.userSwitches,
     }),
     mis_switches() {
       const searchLower = this.search.toLowerCase().trim();
@@ -246,15 +264,14 @@ export default {
       });
     },
     switches_suscritos() {
-      const searchLower = this.search.toLowerCase().trim();
-      return this.app_users.find(x => x.id == this.user.id) ? this.app_users.find(x => x.id == this.user.id).suscriptions.filter(x => {
-        if (x.name.toLowerCase().includes(searchLower)) return true;
-        return false;
-      }) : [];
+      const searchLower = this.search ? this.search.toLowerCase().trim() : "";
+      console.log(this.app_users.find(x => x.id == this.user.id).suscriptions);
+      console.log(this.switches.filter(y => this.user_switches.some(x => x.user == '/api/users/' + this.user.id && x.switch == y['@id'])));
+      return this.switches.filter(y => this.user_switches.some(x => x.user == '/api/users/' + this.user.id && x.switch == y['@id']));
     },
     numericRules() {
       return [
-        value => !!value || 'Requiredo',  // Check if the value is not empty
+        value => !!value || 'Requerido',  // Check if the value is not empty
         value => (value >= 1) || 'Debe ser mas grande que 1',  // Minimum value rule
         value => (value <= 120) || 'Debe ser mas pequeño que 120', // Maximum value rule
       ];
@@ -263,16 +280,10 @@ export default {
   mounted() {
     if (!this.user_loaded)
       this.$router.push('/login')
-    if (!this.switches_loaded) {
-      this.getSwitchess();
-    }
-    if (!this.app_users_loaded) {
-      this.getAppUsers();
-    }
   },
   methods: {
-    ...mapActions(switchStore, ["getSwitchess", "createSwitch", "deleteSwitch", "checkSwitch"]),
-    ...mapActions(userStore, ["getAppUsers"]),
+    ...mapActions(switchStore, ["createSwitch", "deleteSwitch", "checkSwitch"]),
+    ...mapActions(userSwitchStore, ["changeFollowerSwitch"]),
     crearSwitch() {
       if (this.nombre_create.trim().length > 0) {
         this.createSwitch(this.nombre_create, this.description_create);

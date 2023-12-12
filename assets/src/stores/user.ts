@@ -25,11 +25,7 @@ export const userStore = defineStore({
     actions: {
         getAppUsers() {
             this.app_users_loading = true;
-            axios.get('http://localhost/api/users', {
-                headers: {
-                    'Authorization': `Bearer ${sessionStorage.getItem('token')}`,
-                }
-            })
+            axios.get('http://localhost/api/users')
                 .then(response => {
                     this.app_users = response.data['hydra:member'];
                     this.app_users_loading = false;
@@ -47,7 +43,7 @@ export const userStore = defineStore({
             axios.post('http://localhost/auth', objeto)
                 .then(response => {
                     this.token = response.data.token;
-                    return axios.get('http://localhost/api/user_auth', {
+                    return axios.get('http://localhost/api/user/auth/', {
                         headers: {
                             'Authorization': `Bearer ${this.token}`,
                         }

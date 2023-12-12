@@ -2,6 +2,9 @@
 
 namespace App\Entity;
 
+use App\Controller\ApiController;
+use App\Controller\RegistrationController;
+use App\Controller\UserAuthController;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -10,15 +13,44 @@ use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
+use ApiPlatform\Metadata\Delete;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    operations: [
+        new Get(security: "is_granted('ROLE_USER')"),
+        new Get(
+            controller: UserAuthController::class,
+            uriTemplate: '/user/auth',
+            name: 'user_auth',
+            read: false,
+            security: "is_granted('ROLE_USER')",
+        ),
+        new Put(
+            security: "is_granted('ROLE_USER') and object.id == user.id"
+        ),
+        new Delete(
+            security: "is_granted('ROLE_USER') and object.id == user.id"
+        ),
+        new Post(security: "is_granted('ROLE_USER')"),
+        new Post(
+            controller: RegistrationController::class,
+            uriTemplate: '/registration',
+            name: 'api_registration'
+        ),
+        new GetCollection(),
+    ],
+)]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private ?int $id = null;
+    public ?int $id = null;
 
     #[ORM\Column(length: 255, unique: true)]
     #[Assert\NotBlank(message: "Por favor, ingresa un nombre de usuario.")]
