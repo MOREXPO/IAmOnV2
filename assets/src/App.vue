@@ -8,7 +8,31 @@
       </v-toolbar-title>
 
       <div class="flex-grow-1"></div>
-
+      <div class="flex-grow-1"></div>
+      <div class="flex-grow-1"></div>
+      <div class="flex-grow-1"></div>
+      <div>
+        <div>
+          <a class="navbar-item mr-1" @click="changeLanguage('es')">
+            <span class="icon">
+              <img
+                src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/Bandera_de_Espa%C3%B1a.svg/200px-Bandera_de_Espa%C3%B1a.svg.png"
+                style="width: 2em;" />
+            </span>
+            Español
+          </a>
+          <a class="navbar-item" @click="changeLanguage('en')">
+            <span class="icon">
+              <img
+                src="https://media.istockphoto.com/id/479199262/es/foto/encuadre-completo-imagen-de-inglaterra-bandera.jpg?s=612x612&w=0&k=20&c=SwMP7VR64pbeG-fGCQSbP3e1jYLV0w-79bNyDG5z5Cc="
+                style="width: 2em;" />
+            </span>
+            English
+          </a>
+          <!-- Agrega más idiomas según sea necesario -->
+        </div>
+      </div>
+      <div class="flex-grow-1"></div>
       <div class="d-flex align-center">
         <div v-if="user_loaded" class="me-3">
           <i class="fas fa-user"></i>
@@ -42,6 +66,7 @@ import { mapState, mapActions } from 'pinia';
 import { userStore } from '/src/stores/user';
 import { switchStore } from '/src/stores/switch';
 import { userSwitchStore } from '/src/stores/userSwitch';
+import { translateStore } from '/src/stores/translate';
 import Loader from '/src/components/Loader.vue';
 export default {
   components: {
@@ -50,6 +75,7 @@ export default {
     Loader
   },
   mounted() {
+    this.setLanguage((navigator.language || navigator.userLanguage).split('-')[0]);
     if (sessionStorage.getItem('user')) {
       this.setLoaded(true);
       this.setUser(JSON.parse(sessionStorage.getItem('user')));
@@ -95,13 +121,33 @@ export default {
     ...mapState(userSwitchStore, {
       user_switches_loaded: store => store.loaded,
     }),
+    ...mapState(translateStore, {
+      language: store => store.language,
+    }),
   },
   methods: {
     ...mapActions(switchStore, ["getSwitchess"]),
     ...mapActions(userSwitchStore, ["getUserSwitchess"]),
     ...mapActions(userStore, ["setUser", "setToken", "setLoaded", "logout", "getAppUsers"]),
+    ...mapActions(translateStore, ["setLanguage"]),
+    changeLanguage(language) {
+      // Puedes agregar lógica aquí para cambiar el idioma en tu aplicación
+      this.setLanguage(language);
+    },
+    getFlagIcon(language) {
+      // Mapea el código del idioma al nombre de la clase de la bandera de FontAwesome
+      switch (language) {
+        case 'es':
+          return 'flag-icon flag-icon-es';
+        case 'en':
+          return 'flag-icon flag-icon-gb';
+        // Agrega más casos según sea necesario
+        default:
+          return '';
+      }
+    }
   }
-};
+}
 </script>
 
 <style scoped>
@@ -116,5 +162,4 @@ export default {
     height: 100vh;
     background-color: #003298;
   }
-}
-</style>
+}</style>

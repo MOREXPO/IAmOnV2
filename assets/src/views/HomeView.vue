@@ -5,7 +5,8 @@
         <v-card class="mx-auto" color="grey-lighten-3" max-width="400">
           <v-card-text>
             <v-text-field v-model="search" :loading="loadingSearch" density="compact" variant="solo"
-              label="Buscar interruptores" append-inner-icon="mdi-magnify" single-line hide-details></v-text-field>
+              :label="words['buscar interruptores'][language]" append-inner-icon="mdi-magnify" single-line
+              hide-details></v-text-field>
           </v-card-text>
         </v-card>
       </div>
@@ -13,7 +14,7 @@
 
     <div class="row my-5">
       <div class="col-12">
-        <h2 class="pb-2 border-bottom d-flex justify-content-between">Mis interruptores
+        <h2 class="pb-2 border-bottom d-flex justify-content-between">{{ words['mis interruptores'][language] }}
           <a class="link-dark" href="#" data-bs-toggle="modal" data-bs-target="#addModal">
             <v-icon icon="mdi-plus-box"></v-icon>
           </a>
@@ -26,29 +27,29 @@
       <div class="modal-dialog">
         <div class="modal-content rounded-4 shadow">
           <div class="modal-header p-5 pb-4 border-bottom-0">
-            <h1 class="fw-bold mb-0 fs-2">Crear Nuevo Switch</h1>
+            <h1 class="fw-bold mb-0 fs-2">{{ words['crear nuevo switch'][language] }}</h1>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
 
           <div class="modal-body p-5 pt-0">
             <div class="form-floating mb-3">
-              <v-text-field v-model="nombre_create" label="Nombre" hide-details="auto"></v-text-field>
+              <v-text-field v-model="nombre_create" :label="words['nombre'][language]" hide-details="auto"></v-text-field>
               <div v-if="error" class="alert alert-danger" role="alert">
-                El nombre es obligatorio
+                {{ words['el nombre es obligatorio'][language] }}
               </div>
             </div>
             <div class="form-floating mb-3">
-              <v-textarea v-model="description_create" name="input-7-1" variant="filled" label="Descripción (Opcional)"
-                auto-grow></v-textarea>
+              <v-textarea v-model="description_create" name="input-7-1" variant="filled"
+                :label="words['descripcion (opcional)'][language]" auto-grow></v-textarea>
             </div>
-            <v-btn class="w-100 mb-2 btn btn-lg rounded-3 btn-primary" @click="crearSwitch"
-              data-bs-dismiss="modal">Crear</v-btn>
+            <v-btn class="w-100 mb-2 btn btn-lg rounded-3 btn-primary" @click="crearSwitch" data-bs-dismiss="modal">{{
+              words['crear'][language] }}</v-btn>
           </div>
         </div>
       </div>
     </div>
     <div class="row row-cols-1 row-cols-md-3 g-4">
-      <div v-for="mi_switch in mis_switches" class="col my-4">
+      <div v-for="mi_switch in       mis_switches      " class="col my-4">
         <div class="card h-100 bg-light">
           <div class="card-body" :class="mi_switch.state ? ' bg-success-subtle' : 'bg-danger-subtle'">
             <h5 class="card-title">
@@ -66,11 +67,10 @@
             </p>
             <div class="mb-3">
               <strong v-if="mi_switch.state">
-                <p id="minutosEncendido" class="card-text">Tiempo encendido: {{ tiemposSwitches.find(x => x.id ==
-                  mi_switch.id).contador }} segundos</p>
+                <p id="minutosEncendido" class="card-text">{{ words['tiempo encendido'][language] }}: {{ tiemposSwitches.find(x=> x.id ==mi_switch.id).contador }} {{ words['segundos'][language] }}</p>
               </strong>
               <strong v-else>
-                <p id="fechaUltimoEncendido" class="card-text">Fecha Último Encendido: {{ new
+                <p id="fechaUltimoEncendido" class="card-text">{{ words['fecha ultimo encendido'][language] }}: {{ new
                   Date(mi_switch.clickDateEnd).toLocaleString('es-ES', { timeZoneName: 'short' }) }}</p>
               </strong>
             </div>
@@ -80,7 +80,8 @@
             <div class="modal-dialog">
               <div class="modal-content">
                 <div class="modal-header">
-                  <h5 class="modal-title" :id="'switchModalLabel' + mi_switch.id">Configurar interruptor
+                  <h5 class="modal-title" :id="'switchModalLabel' + mi_switch.id">{{ words['configurar interruptor'][language]
+                  }}
                   </h5>
                   <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
@@ -89,22 +90,22 @@
                 <div class="modal-body">
                   <form :id="'switchForm' + mi_switch.id">
                     <div class="form-group">
-                      <v-text-field label="Tiempo de Encendido (minutos):" v-model="onTime" type="number"
-                        :rules="numericRules"></v-text-field>
+                      <v-text-field :label="words['tiempo de encendido'][language]+' '+(words['minutos'][language])+':'" v-model=" onTime " type="number" :rules=" numericRules "></v-text-field>
                     </div>
                   </form>
                 </div>
                 <div class="modal-footer">
-                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                  <button type="button" class="btn btn-secondary"
+                    data-bs-dismiss="modal">{{words['cerrar'][language]}}</button>
                   <v-btn @click="checkSwitch(mi_switch.id, onTime, !mi_switch.state)" class="btn btn-primary"
-                    :disabled="onTime < 1 || onTime > 120" data-bs-dismiss="modal">Encender</v-btn>
+                    :disabled=" onTime < 1 || onTime > 120 " data-bs-dismiss="modal">{{words['encender'][language]}}</v-btn>
                 </div>
               </div>
             </div>
           </div>
           <div class="card-footer">
             <div class="d-flex justify-content-between">
-              <a href="#" class="fs-4" data-bs-toggle="modal" :data-bs-target="'#modalUri' + mi_switch.id">
+              <a href="#" class="fs-4" data-bs-toggle="modal" :data-bs-target=" '#modalUri' + mi_switch.id ">
                 <v-icon icon="mdi-share-variant"></v-icon>
               </a>
               <div class="fs-4">{{ mi_switch.followers.length }}&nbsp<v-icon icon="mdi-account"></v-icon>
@@ -118,7 +119,7 @@
           </div>
         </div>
         <!-- Modal -->
-        <div class="modal fade" :id="'modalUri' + mi_switch.id" tabindex="-1" aria-labelledby="modalUriLabel"
+        <div class="modal fade" :id=" 'modalUri' + mi_switch.id " tabindex="-1" aria-labelledby="modalUriLabel"
           aria-hidden="true">
           <div class="modal-dialog">
             <div class="modal-content">
@@ -129,22 +130,22 @@
               <div class="modal-body">
                 <div class="form-floating mb-3">
                   <div class="input-group">
-                    <span class="input-group-text" id="inputGroup-sizing-sm">URI publico</span>
-                    <input type="text" class="form-control" :id="'floatingInputPublic' + mi_switch.id"
-                      :value="mi_switch.publicUri" readonly>
-                    <CopyToClipboard :copy="mi_switch.publicUri" class="btn btn-outline-secondary"><v-icon
+                    <span class="input-group-text" id="inputGroup-sizing-sm">{{words['uri publico'][language]}}</span>
+                    <input type="text" class="form-control" :id=" 'floatingInputPublic' + mi_switch.id "
+                      :value=" mi_switch.publicUri " readonly>
+                    <CopyToClipboard :copy=" mi_switch.publicUri " class="btn btn-outline-secondary"><v-icon
                         icon="mdi-clipboard"></v-icon>
-                      Copiar</CopyToClipboard>
+                      {{words['copiar'][language]}}</CopyToClipboard>
                   </div>
                 </div>
                 <div class="form-floating mb-3">
                   <div class="input-group">
-                    <span class="input-group-text" id="inputGroup-sizing-sm">URI privado</span>
-                    <input type="text" class="form-control" :id="'floatingInputPrivate' + mi_switch.id"
-                      :value="mi_switch.privateUri" readonly>
-                    <CopyToClipboard :copy="mi_switch.privateUri" class="btn btn-outline-secondary"><v-icon
+                    <span class="input-group-text" id="inputGroup-sizing-sm">{{words['uri privado'][language]}}</span>
+                    <input type="text" class="form-control" :id=" 'floatingInputPrivate' + mi_switch.id "
+                      :value=" mi_switch.privateUri " readonly>
+                    <CopyToClipboard :copy=" mi_switch.privateUri " class="btn btn-outline-secondary"><v-icon
                         icon="mdi-clipboard"></v-icon>
-                      Copiar</CopyToClipboard>
+                      {{words['copiar'][language]}}</CopyToClipboard>
                   </div>
                 </div>
               </div>
@@ -156,7 +157,7 @@
 
     <div class="row my-5">
       <div class="col-12">
-        <h2 class="pb-2 border-bottom d-flex justify-content-between">Mis interruptores suscritos
+        <h2 class="pb-2 border-bottom d-flex justify-content-between">{{words['mis interruptores suscritos'][language]}}
         </h2>
       </div>
     </div>
@@ -166,44 +167,44 @@
       <div class="modal-dialog">
         <div class="modal-content rounded-4 shadow">
           <div class="modal-header p-5 pb-4 border-bottom-0">
-            <h1 class="fw-bold mb-0 fs-2">Crear Nuevo Switch</h1>
+            <h1 class="fw-bold mb-0 fs-2">{{words['crear nuevo switch'][language]}}</h1>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
 
           <div class="modal-body p-5 pt-0">
             <div class="form-floating mb-3">
-              <v-text-field v-model="nombre_create" label="Nombre" hide-details="auto"></v-text-field>
-              <div v-if="error" class="alert alert-danger" role="alert">
-                El nombre es obligatorio
+              <v-text-field v-model=" nombre_create " :label="words['nombre'][language]" hide-details="auto"></v-text-field>
+              <div v-if=" error " class="alert alert-danger" role="alert">
+                {{words['el nombre es obligatorio'][language]}}
               </div>
             </div>
             <div class="form-floating mb-3">
-              <v-textarea v-model="description_create" name="input-7-1" variant="filled" label="Descripción (Opcional)"
+              <v-textarea v-model=" description_create " name="input-7-1" variant="filled" :label="words['descripcion (opcional)'][language]"
                 auto-grow></v-textarea>
             </div>
-            <v-btn class="w-100 mb-2 btn btn-lg rounded-3 btn-primary" @click="crearSwitch">Crear</v-btn>
+            <v-btn class="w-100 mb-2 btn btn-lg rounded-3 btn-primary" @click=" crearSwitch ">{{words['crear'][language]}}</v-btn>
           </div>
         </div>
       </div>
     </div>
     <div class="row row-cols-1 row-cols-md-3 g-4">
-      <div v-for="switch_suscrito in switches_suscritos" class="col my-4">
+      <div v-for="      switch_suscrito       in       switches_suscritos      " class="col my-4">
         <div class="card h-100 bg-light">
-          <div class="card-body" :class="switch_suscrito.state ? 'bg-success-subtle' : 'bg-danger-subtle'">
+          <div class="card-body" :class=" switch_suscrito.state ? 'bg-success-subtle' : 'bg-danger-subtle' ">
             <h5 class="card-title">
               {{ switch_suscrito.name }}
             </h5>
-            <p class="card-text">Usuario propietario:
+            <p class="card-text">{{words['propietario'][language]}}:
               {{ app_users.find(x => x['@id'] == switch_suscrito.owner).username }}
             </p>
 
             <div class="mb-3">
-              <strong v-if="switch_suscrito.state">
-                <p id="minutosEncendido" class="card-text">Tiempo encendido: {{ tiemposSwitches.find(x => x.id ==
-                  switch_suscrito.id).contador }} segundos</p>
+              <strong v-if=" switch_suscrito.state ">
+                <p id="minutosEncendido" class="card-text">{{words['tiempo de encendido'][language]}}: {{ tiemposSwitches.find(x => x.id ==
+                  switch_suscrito.id).contador }} {{words['segundos'][language]}}</p>
               </strong>
               <strong v-else>
-                <p id="fechaUltimoEncendido" class="card-text">Fecha Último Encendido: {{ new
+                <p id="fechaUltimoEncendido" class="card-text">{{words['fecha ultimo encendido'][language]}}: {{ new
                   Date(switch_suscrito.clickDateEnd).toLocaleString('es-ES', { timeZoneName: 'short' }) }}</p>
               </strong>
             </div>
@@ -217,7 +218,7 @@
                 <!-- Agrega detalles del estado o la fecha de encendido según tus datos -->
               </div>
               <div>
-                <v-btn @click="changeFollowerSwitch(switch_suscrito.id)" class="btn btn-danger">Dejar de seguir</v-btn>
+                <v-btn @click="changeFollowerSwitch(switch_suscrito.id)" class="btn btn-danger">{{words['dejar de seguir'][language]}}</v-btn>
               </div>
             </div>
           </div>
@@ -231,6 +232,7 @@ import { mapState, mapActions } from 'pinia';
 import { userStore } from '/src/stores/user';
 import { switchStore } from '/src/stores/switch';
 import { userSwitchStore } from '/src/stores/userSwitch';
+import { translateStore } from '/src/stores/translate';
 export default {
   data: () => ({
     onTime: 60,
@@ -254,6 +256,10 @@ export default {
     ...mapState(userSwitchStore, {
       user_switches: store => store.userSwitches,
     }),
+    ...mapState(translateStore, {
+      words: store => store.words,
+      language: store => store.language,
+    }),
     mis_switches() {
       const searchLower = this.search.toLowerCase().trim();
       return this.switches.filter(x => {
@@ -265,8 +271,6 @@ export default {
     },
     switches_suscritos() {
       const searchLower = this.search ? this.search.toLowerCase().trim() : "";
-      console.log(this.app_users.find(x => x.id == this.user.id).suscriptions);
-      console.log(this.switches.filter(y => this.user_switches.some(x => x.user == '/api/users/' + this.user.id && x.switch == y['@id'])));
       return this.switches.filter(y => this.user_switches.some(x => x.user == '/api/users/' + this.user.id && x.switch == y['@id']));
     },
     numericRules() {
@@ -278,6 +282,7 @@ export default {
     },
   },
   mounted() {
+    console.log(this.user_loaded);
     if (!this.user_loaded)
       this.$router.push('/login')
   },
