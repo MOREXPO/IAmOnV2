@@ -21,6 +21,18 @@ export const translateStore = defineStore({
                 es: "Entrar",
                 en: "Log in"
             },
+            salir: {
+                es: "Salir",
+                en: "Exit"
+            },
+            espanol: {
+                es: "Español",
+                en: "Spanish"
+            },
+            ingles: {
+                es: "Ingles",
+                en: "English"
+            },
             registrar: {
                 es: "Registrar",
                 en: "Register"

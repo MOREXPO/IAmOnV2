@@ -12,25 +12,13 @@
       <div class="flex-grow-1"></div>
       <div class="flex-grow-1"></div>
       <div>
-        <div>
-          <a class="navbar-item mr-1" @click="changeLanguage('es')">
-            <span class="icon">
-              <img
-                src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/Bandera_de_Espa%C3%B1a.svg/200px-Bandera_de_Espa%C3%B1a.svg.png"
-                style="width: 2em;" />
-            </span>
-            Español
-          </a>
-          <a class="navbar-item" @click="changeLanguage('en')">
-            <span class="icon">
-              <img
-                src="https://media.istockphoto.com/id/479199262/es/foto/encuadre-completo-imagen-de-inglaterra-bandera.jpg?s=612x612&w=0&k=20&c=SwMP7VR64pbeG-fGCQSbP3e1jYLV0w-79bNyDG5z5Cc="
-                style="width: 2em;" />
-            </span>
-            English
-          </a>
-          <!-- Agrega más idiomas según sea necesario -->
-        </div>
+        <form class="tabber">
+          <label for="t1">{{ language != 'es' ? words['espanol'][language] : '' }}</label>
+          <input @click="setLanguage('es')" id="t1" name="food" type="radio" checked>
+          <label for="t2">{{ language != 'en' ? words['ingles'][language] : '' }}</label>
+          <input @click="setLanguage('en')" id="t2" name="food" type="radio">
+          <div class="blob"></div>
+        </form>
       </div>
       <div class="flex-grow-1"></div>
       <div class="d-flex align-center">
@@ -40,7 +28,7 @@
 
           <v-btn class="btn me-3 text-bg-white" @click="logout">
             <i class="fas fa-fw fa-sign-out-alt"></i>
-            Salir
+            {{ words['salir'][language] }}
           </v-btn>
         </div>
       </div>
@@ -122,6 +110,7 @@ export default {
       user_switches_loaded: store => store.loaded,
     }),
     ...mapState(translateStore, {
+      words: store => store.words,
       language: store => store.language,
     }),
   },
@@ -151,15 +140,196 @@ export default {
 </script>
 
 <style scoped>
-#particles-js {
-  background: #003298;
+@import url("https://fonts.googleapis.com/css?family=Concert+One&display=swap");
+
+svg {
+  display: none;
 }
 
-@media (max-width: 768px) {
-  #particles-js {
-    position: relative;
-    width: 100%;
-    height: 100vh;
-    background-color: #003298;
+.tabber {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+}
+
+.tabber label {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  padding: 3rem;
+  cursor: pointer;
+  will-change: transform;
+  transform: translateZ(0px);
+  transition: transform 125ms ease-in-out, filter 125ms ease-in-out;
+}
+
+.tabber label:hover {
+  transform: scale(1.15);
+}
+
+.tabber input[type=radio] {
+  display: none;
+}
+
+.tabber input[type=radio]#t1~.blob {
+  transform-origin: right center;
+}
+
+.tabber input[type=radio]#t2~.blob {
+  transform-origin: left center;
+}
+
+.tabber input[type=radio]#t1:checked~.blob {
+  background: url('https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/Flag_of_Spain_%28Civil%29.svg/220px-Flag_of_Spain_%28Civil%29.svg.png');
+  background-size: cover;
+  background-size: contain;
+  background-position: center;
+  -webkit-animation-name: stretchyRev;
+  animation-name: stretchyRev;
+}
+
+.tabber input[type=radio]#t2:checked~.blob {
+  background: url('https://media.istockphoto.com/id/479199262/es/foto/encuadre-completo-imagen-de-inglaterra-bandera.jpg?s=612x612&w=0&k=20&c=SwMP7VR64pbeG-fGCQSbP3e1jYLV0w-79bNyDG5z5Cc=');
+  background-size: cover;
+  background-size: contain;
+  background-position: center;
+  -webkit-animation-name: stretchy;
+  animation-name: stretchy;
+}
+
+.tabber .blob {
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  position: absolute;
+  z-index: -1;
+  border-radius: 4rem;
+  -webkit-animation-duration: 0.5s;
+  animation-duration: 0.5s;
+  -webkit-animation-direction: forwards;
+  animation-direction: forwards;
+  -webkit-animation-iteration-count: 1;
+  animation-iteration-count: 1;
+  -webkit-animation-fill-mode: forwards;
+  animation-fill-mode: forwards;
+  transition: transform 150ms ease, background 150ms ease;
+  filter: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" version="1.1"><defs><filter id="goo"><feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" /><feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9" result="goo" /><feComposite in="SourceGraphic" in2="goo" operator="atop"/></filter></defs></svg>#goo');
+}
+
+.tabber .blob:before,
+.tabber .blob:after {
+  display: block;
+  content: "";
+  position: absolute;
+  top: 0;
+  background-color: inherit;
+  height: 100%;
+  width: 50%;
+  border-radius: 100%;
+  transform: scale(1.15);
+  transition: transform 150ms ease;
+  -webkit-animation-name: pulse;
+  animation-name: pulse;
+  -webkit-animation-duration: 0.5s;
+  animation-duration: 0.5s;
+  -webkit-animation-iteration-count: infinite;
+  animation-iteration-count: infinite;
+  -webkit-animation-direction: alternate;
+  animation-direction: alternate;
+}
+
+.tabber .blob:before {
+  left: 0;
+  -webkit-animation-delay: 0.15s;
+  animation-delay: 0.15s;
+}
+
+.tabber .blob:after {
+  right: 0;
+}
+
+@-webkit-keyframes stretchy {
+  0% {
+    transform: translateX(0) scaleX(1);
   }
-}</style>
+
+  50% {
+    transform: translateX(0) scaleX(2);
+  }
+
+  100% {
+    transform: translateX(100%) scaleX(1);
+  }
+}
+
+@keyframes stretchy {
+  0% {
+    transform: translateX(0) scaleX(1);
+  }
+
+  50% {
+    transform: translateX(0) scaleX(2);
+  }
+
+  100% {
+    transform: translateX(100%) scaleX(1);
+  }
+}
+
+@-webkit-keyframes stretchyRev {
+  0% {
+    transform: translateX(100%) scaleX(1);
+  }
+
+  50% {
+    transform: translateX(0) scaleX(2);
+  }
+
+  100% {
+    transform: translateX(0) scaleX(1);
+  }
+}
+
+@keyframes stretchyRev {
+  0% {
+    transform: translateX(100%) scaleX(1);
+  }
+
+  50% {
+    transform: translateX(0) scaleX(2);
+  }
+
+  100% {
+    transform: translateX(0) scaleX(1);
+  }
+}
+
+@-webkit-keyframes pulse {
+
+  0%,
+  50% {
+    transform: scaleX(1);
+  }
+
+  25%,
+  75% {
+    transform: scaleX(1.5);
+  }
+}
+
+@keyframes pulse {
+
+  0%,
+  50% {
+    transform: scaleX(1);
+  }
+
+  25%,
+  75% {
+    transform: scaleX(1.5);
+  }
+}
+</style>
