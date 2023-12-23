@@ -31,7 +31,6 @@ export const switchStore = defineStore({
                         contador: 0,
                         temporizador: null
                     }));
-                    console.log(this.tiemposSwitches);
                     this.loading = false;
                     this.loaded = true;
                 })
@@ -41,12 +40,13 @@ export const switchStore = defineStore({
                     this.loading = false;
                 });
         },
-        createSwitch(nombre: any, description: any) {
+        createSwitch(nombre: any, description: any, idUser: any) {
             this.loading = true;
 
             axios.post('http://localhost/api/switchess', {
                 name: nombre,
-                description: description
+                description: description,
+                owner: '/api/users/' + idUser
             }, {
                 headers: {
                     'Authorization': `Bearer ${sessionStorage.getItem('token')}`,
@@ -54,7 +54,6 @@ export const switchStore = defineStore({
             })
                 .then(response => {
                     this.switches.push(response.data);
-                    console.log(this.switches);
                     this.loading = false;
                 })
                 .catch(error => {
@@ -71,15 +70,22 @@ export const switchStore = defineStore({
                 isChecked: isChecked
             })
                 .then(response => {
-                    console.log(this.switches);
                     this.switches.find(x => x.id == id).state = response.data['state'];
                     if (response.data['state']) {
                         let tiempoEnSegundos = onTime * 60;
-                        console.log(this.tiemposSwitches);
                         this.tiemposSwitches.find(x => x.id == id).temporizador = setInterval(() => {
                             if (this.tiemposSwitches.find(x => x.id == id).contador >= tiempoEnSegundos) {
                                 clearInterval(this.tiemposSwitches.find(x => x.id == id).temporizador); // Detiene el intervalo cuando el tiempo llega a cero
                                 this.tiemposSwitches.find(x => x.id == id).contador = 0;
+                                axios.get('http://localhost/api/switchess/' + id)
+                                    .then(response => {
+                                        this.switches = this.switches.filter(x => x.id != response.data.id);
+                                        this.switches.push(response.data);
+                                    })
+                                    .catch(error => {
+                                        // Manejar el error aquí
+                                        console.error('Error:', error);
+                                    });
                                 this.switches.find(x => x.id == id).state = false;
                             } else {
                                 this.tiemposSwitches.find(x => x.id == id).contador++;
@@ -109,7 +115,6 @@ export const switchStore = defineStore({
                 .then(response => {
                     this.switches = this.switches.filter(x => x.id != id);
                     this.tiemposSwitches = this.tiemposSwitches.filter(x => x.id != id);
-                    console.log(this.switches);
                     this.loading = false;
                 })
                 .catch(error => {

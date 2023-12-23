@@ -26,7 +26,8 @@
               </div>
               <label :class="!isPublic || switchAux.owner == '/api/users/' + user.id ? 'form-check-label' : ''"
                 for="estadoSwitch">
-                <span v-if="switchAux.state" class="badge bg-success rounded-pill">{{ words['encendido'][language] }}</span>
+                <span v-if="switchAux.state" class="badge bg-success rounded-pill">{{ words['encendido'][language]
+                }}</span>
                 <span v-else class="badge bg-danger rounded-pill">{{ words['apagado'][language] }}</span>
               </label>
             </div>
@@ -44,7 +45,8 @@
             </div>
             <div class="mb-3">
               <strong>{{ words['propietario'][language] }}:</strong>
-              {{ app_users.find(x => x['@id'] == switchAux.owner).username }}
+              {{ app_users.find(x => x['@id'] == switchAux.owner) ? app_users.find(x => x['@id'] ==
+                switchAux.owner).username : "" }}
             </div>
           </div>
           <div class="modal fade" :id="'switchModal' + switchAux.id" tabindex="-1"
@@ -52,8 +54,7 @@
             <div class="modal-dialog">
               <div class="modal-content">
                 <div class="modal-header">
-                  <h5 class="modal-title" :id="'switchModalLabel' + switchAux.id">{{ words['configurar interruptor'][language]
-                  }}
+                  <h5 class="modal-title" :id="'switchModalLabel' + switchAux.id">{{ words['configurar interruptor'][language]}}
                   </h5>
                   <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
@@ -62,7 +63,8 @@
                 <div class="modal-body">
                   <form :id="'switchForm' + switchAux.id">
                     <div class="form-group">
-                      <v-text-field :label="words['tiempo de encendido'][language] + ' (' + words['minutos'][language] + '):'"
+                      <v-text-field
+                        :label="words['tiempo de encendido'][language] + ' (' + words['minutos'][language] + '):'"
                         v-model="onTime" type="number" :rules="numericRules"></v-text-field>
                     </div>
                   </form>
@@ -71,7 +73,8 @@
                   <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ words['cerrar'][language]
                   }}</button>
                   <v-btn @click="checkSwitch(switchAux.id, onTime, !switchAux.state)" class="btn btn-primary"
-                    :disabled="onTime < 1 || onTime > 120" data-bs-dismiss="modal">{{ words['encender'][language] }}</v-btn>
+                    :disabled="onTime < 1 || onTime > 120" data-bs-dismiss="modal">{{ words['encender'][language]
+                    }}</v-btn>
                 </div>
               </div>
             </div>

@@ -12,17 +12,18 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Message\StartCountdown;
 use Symfony\Component\Messenger\Stamp\DelayStamp;
 use DateTime;
+use Symfony\Component\Mime\Email;
+use Symfony\Component\Mailer\MailerInterface;
 
 class SwitchCheckController extends AbstractController
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
         private SwitchesRepository $switchesRepository,
-        private MessageBusInterface $messageBus
     ) {
     }
 
-    public function __invoke($id, Request $request): JsonResponse
+    public function __invoke($id, Request $request,MailerInterface $mailer,MessageBusInterface $messageBus): JsonResponse
     {
         $switch = $this->switchesRepository->find($id);
         $content = json_decode($request->getContent(), true);
@@ -32,7 +33,7 @@ class SwitchCheckController extends AbstractController
             $countdownId = $switch->getId();
             $message = new StartCountdown($countdownId, $onTime * 60000);
             $delayStamp = new DelayStamp($onTime * 60000);
-            $this->messageBus->dispatch($message, [$delayStamp]);
+            $messageBus->dispatch($message, [$delayStamp]);
             $switch->setClickDateStart(new DateTime());
             $switch->setState(true);
 
@@ -50,7 +51,7 @@ class SwitchCheckController extends AbstractController
                         ->text('Tienes el switch ' . $switch->getName() . ' encendido')
                         ->html('<p>Se encendio a las ' . $switch->getClickDateStart()->format('Y-m-d H:i:s') . '</p>');
 
-                    $this->mailer->send($email);
+                    $mailer->send($email);
                 }
             }
         } else {

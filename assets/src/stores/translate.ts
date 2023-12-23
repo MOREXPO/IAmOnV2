@@ -9,6 +9,10 @@ export const translateStore = defineStore({
                 es: "Usuario",
                 en: "User"
             },
+            "tiempo encendido": {
+                es: "Tiempo encendido",
+                en: "Time on"
+            },
             contrasena: {
                 es: "Contraseña",
                 en: "Password"

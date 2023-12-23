@@ -195,7 +195,7 @@
               {{ switch_suscrito.name }}
             </h5>
             <p class="card-text">{{words['propietario'][language]}}:
-              {{ app_users.find(x => x['@id'] == switch_suscrito.owner).username }}
+              {{ app_users.find(x => x['@id'] == switch_suscrito.owner)?app_users.find(x => x['@id'] == switch_suscrito.owner).username:"" }}
             </p>
 
             <div class="mb-3">
@@ -282,7 +282,6 @@ export default {
     },
   },
   mounted() {
-    console.log(this.user_loaded);
     if (!this.user_loaded)
       this.$router.push('/login')
   },
@@ -291,7 +290,7 @@ export default {
     ...mapActions(userSwitchStore, ["changeFollowerSwitch"]),
     crearSwitch() {
       if (this.nombre_create.trim().length > 0) {
-        this.createSwitch(this.nombre_create, this.description_create);
+        this.createSwitch(this.nombre_create, this.description_create,this.user.id);
         this.error = false;
       }
       else this.error = true;

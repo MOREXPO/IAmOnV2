@@ -24,9 +24,10 @@ class StartCountdownHandler
         $countdownId = $message->getCountdownId();
 
         $switch = $this->switchesRepository->find($countdownId);
-        $switch->setState(false);
-        if ($switch->isState()) $switch->setClickDateEnd(new DateTime());
-
+        if ($switch->isState()) {
+            $switch->setClickDateEnd(new DateTime());
+            $switch->setState(false);
+        }
         $this->entityManager->persist($switch);
 
         $this->entityManager->flush();

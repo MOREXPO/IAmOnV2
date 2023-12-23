@@ -28,7 +28,6 @@ export const userSwitchStore = defineStore({
                 }
             })
                 .then(response => {
-                    console.log(response.data['hydra:member']);
                     this.userSwitches = response.data['hydra:member'];
                     this.loading = false;
                     this.loaded = true;
