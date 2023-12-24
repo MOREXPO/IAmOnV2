@@ -57,3 +57,5 @@ client-dev:
 ## —— Deploy ———————————————————————————————————————————————————————————————
 consumer:
 	$(PHP_CONT) php bin/console messenger:consume async -vv
+
+deploy: up cc
